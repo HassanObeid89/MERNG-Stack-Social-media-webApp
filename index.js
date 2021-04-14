@@ -1,6 +1,5 @@
 //Dependecy imports
 const { ApolloServer } = require('apollo-server')
-
 const mongoose = require('mongoose');
 
 //Relative imports
