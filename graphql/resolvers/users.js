@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { UserInputError } = require('apollo-server');
 
 const { SECRET_KEY } = require('../../config');
 const User = require('../../modules/User');
@@ -17,6 +18,14 @@ module.exports = {
             //Validate user data
 
             //Make sure user doesnt already exist
+            const user = await User.findOne({ username });
+            if(user){
+                throw new UserInputError('Username is taken', {
+                    errors: {
+                        username: 'this username is taken'
+                    }
+                });
+            }
 
             //hash password and create an auth token
             password = await bcrypt.hash(password,12);
