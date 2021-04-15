@@ -12,7 +12,7 @@ function generateToken(user){
         email: user.email,
         username: user.username
 
-    }, SECRET_KEY, { expiresIn: '1h' }
+    }, SECRET_KEY, { expiresIn: "1h" }
     );
 }
 module.exports = {
