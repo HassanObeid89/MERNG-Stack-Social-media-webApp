@@ -4,28 +4,28 @@ import {useMutation} from '@apollo/react-hooks';
 import { Button, Confirm, Icon } from 'semantic-ui-react'
 import {FETCH_POSTS_QUERY} from '../util/graphql'
 
-function DeleteButton({ postId, callback }) {
+function DeleteButton({ postId, commentId, callback }) {
 
     const [open, setOpen] = useState(false);
-    
-    const handleClick = () => {
-        setOpen(true)
-    }
-    console.log(open);
-    const [deletePost] = useMutation(DELETE_POST_MUTATION, {
+    const mutation = commentId ? DELETE_COMMENT_MUTATION : DELETE_POST_MUTATION
+
+    const [deletePostOrMutation] = useMutation(mutation, {
         update(proxy){
             setOpen(false);
-            const data = proxy.readQuery({
-                query: FETCH_POSTS_QUERY
-            })
-            data.getPosts = data.getPosts.filter(p => p.id !== postId)
-            proxy.writeQuery({query: FETCH_POSTS_QUERY, data});
+            if(!commentId){
+                const data = proxy.readQuery({
+                    query: FETCH_POSTS_QUERY
+                })
+                data.getPosts = data.getPosts.filter(p => p.id !== postId)
+                proxy.writeQuery({ query: FETCH_POSTS_QUERY, data });
+            }
 
             if (callback) callback();
             
         },
         variables: {
-            postId
+            postId,
+            commentId
         }
     })
 
@@ -35,8 +35,8 @@ function DeleteButton({ postId, callback }) {
                 as='div'
                 color='red'
                 floated='right'
-                // onClick={() => setOpen(true)}
-                onClick={handleClick}
+                onClick={() => setOpen(true)}
+                
             >
                 <Icon name='trash' style={{margin : 0 }} />
             </Button>
@@ -44,7 +44,7 @@ function DeleteButton({ postId, callback }) {
             <Confirm
                 open={open}
                 onCancel={() => setOpen(false)}
-                onConfirm={deletePost}
+                onConfirm={deletePostOrMutation}
                 />
         </>
     )
@@ -55,5 +55,15 @@ const DELETE_POST_MUTATION = gql `
         deletePost(postId: $postId)
     }
 `
-
+const DELETE_COMMENT_MUTATION = gql `
+    mutation deleteComment($postId: ID!, $commentId: ID!){
+        deleteComment(postId: $postId, commentId: $commentId){
+            id
+            comments{
+                id username createdAt body
+            }
+            commentCount
+        }
+    }
+`
 export default DeleteButton
